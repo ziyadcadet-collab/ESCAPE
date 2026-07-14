@@ -7,12 +7,20 @@ Le vol AZ 4521 doit partir dans 6 minutes. Les opérateurs cliquent sur la carte
 pour détecter **10 risques** (opérationnels et TMS), puis valident la **bonne action corrective**
 pour lever chaque obstacle. Tous les obstacles levés → l'avion part.
 
+## Anti-mémorisation
+Les **10 risques sont tirés au sort à chaque partie** dans une banque de **16 scénarios**
+(+ leurres « conformes » eux aussi variables). Impossible d'apprendre le poste par cœur : il faut
+réellement observer. L'ordre des réponses est également mélangé à chaque ouverture de fiche.
+
 ## Utilisation
-- 100 % autonome : un seul fichier `index.html`, aucune API, aucune installation.
+- 100 % autonome : un seul fichier `index.html`, aucune API, aucune installation, fonctionne hors-ligne.
 - Fonctionne sur PC, tablette et mobile (navigateur récent).
 - Idéal en causerie sécurité, quart d'heure sécurité, journée SST.
+- **Visuel réaliste** : poste avion rendu en SVG (fuselage métallique, réacteurs, ombres portées,
+  tarmac béton, marquages ZER/STOP) — sans image externe ni dépendance.
 - **Meilleur score** conservé localement (localStorage) d'une partie à l'autre.
-- **Accessible** : navigation clavier (Tab + Entrée/Espace), fermeture d'une fiche risque par Échap, respect de `prefers-reduced-motion`.
+- **Accessible** : navigation clavier (Tab + Entrée/Espace), fermeture d'une fiche risque par Échap,
+  respect de `prefers-reduced-motion`.
 
 ## Mécanique de jeu
 | Action | Points |
