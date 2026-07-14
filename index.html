@@ -14,8 +14,6 @@
   --navy:#0a182c;
   --navy-2:#122340;
   --panel:#173257;
-  --tarmac:#3a4149;
-  --tarmac-2:#31373e;
   --line-yellow:#ffc61e;
   --alyzia-orange:#f26522;
   --ok:#2ecc71;
@@ -41,7 +39,7 @@ body{
 }
 h1,h2,h3,.disp{font-family:'Barlow Condensed',sans-serif;letter-spacing:.02em}
 
-/* ======== HEADER / BANDEAU DE VOL ======== */
+/* ======== HEADER ======== */
 header{
   display:flex;align-items:center;gap:18px;flex-wrap:wrap;
   padding:12px 22px;
@@ -68,28 +66,70 @@ header{
 @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
 #timer.val{font-variant-numeric:tabular-nums}
 
-/* barre de temps */
 #timebar{height:4px;width:100%;background:#0a1425;position:relative;z-index:4}
 #timefill{height:100%;width:100%;background:linear-gradient(90deg,var(--ok),var(--line-yellow),var(--alyzia-orange));transition:width 1s linear,background .4s}
 #timefill.warn{background:var(--danger)}
 
 /* ======== LAYOUT ======== */
-main{flex:1;display:flex;gap:14px;padding:14px 18px;align-items:stretch}
+main{flex:1;display:flex;gap:14px;padding:14px 18px;align-items:flex-start}
 #mapwrap{
   flex:1;min-width:0;
+  aspect-ratio:1264/848;
+  max-height:calc(100vh - 120px);
   border-radius:var(--radius);border:1px solid #14202c;
   position:relative;overflow:hidden;
-  box-shadow:inset 0 0 90px rgba(0,0,0,.6),0 10px 30px rgba(0,0,0,.35);
+  box-shadow:0 12px 34px rgba(0,0,0,.45);
+  background:#1b2430;
 }
-#mapwrap::after{ /* vignette réaliste */
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.45) 100%);
+#apron{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  user-select:none;-webkit-user-drag:none;transition:transform 2.4s ease,filter 1.2s ease;
 }
-#scene{width:100%;height:100%;display:block;touch-action:manipulation}
+#mapwrap::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%,transparent 60%,rgba(0,0,0,.4) 100%);}
+#mapwrap.cleared #apron{transform:scale(1.06);filter:brightness(1.12) saturate(1.05)}
 
-aside{
-  width:290px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;
+/* couche des zones de risque */
+#hotspots{position:absolute;inset:0;z-index:2}
+
+.pin{
+  position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);
+  border:none;background:transparent;cursor:pointer;border-radius:50%;padding:0;
 }
+.pin .ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:3px dashed var(--line-yellow);opacity:0;transition:opacity .2s,transform .2s;
+  box-shadow:0 0 0 2px rgba(0,0,0,.35), 0 0 14px rgba(255,198,30,.5);
+}
+.pin:hover .ring,.pin:focus-visible .ring{opacity:.95}
+.pin:focus-visible{outline:none}
+.pin .check{
+  position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle,rgba(46,204,113,.95),rgba(20,110,60,.9));
+  border:2px solid #0f6e3c;color:#fff;font-size:1.5rem;font-weight:700;
+  opacity:0;transform:scale(.6);transition:opacity .3s,transform .3s;box-shadow:0 4px 14px rgba(0,0,0,.4);
+}
+.pin .check::after{content:"✓"}
+.pin.solved{cursor:default}
+.pin.solved .ring{opacity:0!important}
+.pin.solved .check{opacity:1;transform:scale(1)}
+.pin.hinted .ring{opacity:.95;animation:pinpulse 1s ease-out 3}
+@keyframes pinpulse{0%{transform:scale(1);opacity:1}100%{transform:scale(1.9);opacity:0}}
+
+/* tampon de fin */
+#stamp{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-11deg) scale(.4);
+  z-index:6;pointer-events:none;opacity:0;
+  font-family:'Barlow Condensed';font-weight:700;font-size:clamp(1.6rem,5vw,3.4rem);
+  color:#fff;text-transform:uppercase;letter-spacing:.05em;
+  padding:10px 26px;border:5px solid var(--ok);border-radius:14px;
+  background:rgba(20,83,45,.55);text-shadow:0 2px 8px rgba(0,0,0,.6);
+  box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+#stamp.show{opacity:1;transform:translate(-50%,-50%) rotate(-11deg) scale(1);
+  transition:opacity .4s ease,transform .5s cubic-bezier(.2,1.4,.4,1)}
+
+aside{width:290px;flex-shrink:0;display:flex;flex-direction:column;gap:12px}
 .card{
   background:linear-gradient(180deg,rgba(18,35,64,.92),rgba(13,27,50,.92));
   border:1px solid var(--stroke);border-radius:var(--radius);
@@ -104,8 +144,7 @@ aside{
 #checklist li .dot{
   width:16px;height:16px;border-radius:50%;flex-shrink:0;
   border:2px solid #3d5a8c;
-  display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;
-  transition:all .3s;
+  display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;transition:all .3s;
 }
 #checklist li.done{color:var(--ink);background:rgba(46,204,113,.08)}
 #checklist li.done .dot{background:var(--ok);border-color:var(--ok);box-shadow:0 0 10px rgba(46,204,113,.5)}
@@ -116,8 +155,7 @@ button.btn{
   font-family:'Barlow',sans-serif;font-weight:600;font-size:.9rem;
   border:none;border-radius:11px;padding:11px 14px;cursor:pointer;
   background:linear-gradient(180deg,#1c3c68,#173056);color:var(--ink);border:1px solid var(--stroke);
-  transition:transform .12s,box-shadow .2s,background .2s;
-  width:100%;
+  transition:transform .12s,box-shadow .2s,background .2s;width:100%;
 }
 button.btn:hover{transform:translateY(-1px);background:#22467a;box-shadow:0 6px 16px rgba(0,0,0,.3)}
 button.btn:active{transform:translateY(0)}
@@ -135,13 +173,9 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 }
 .overlay[hidden]{display:none}
 .modal{
-  width:min(580px,100%);
-  background:linear-gradient(180deg,#16294a,#101f38);
-  border:1px solid var(--stroke);
-  border-radius:var(--radius);padding:22px 24px;
-  box-shadow:0 24px 70px rgba(0,0,0,.6);
-  animation:pop .25s ease;
-  max-height:92vh;overflow:auto;
+  width:min(580px,100%);background:linear-gradient(180deg,#16294a,#101f38);
+  border:1px solid var(--stroke);border-radius:var(--radius);padding:22px 24px;
+  box-shadow:0 24px 70px rgba(0,0,0,.6);animation:pop .25s ease;max-height:92vh;overflow:auto;
 }
 @keyframes pop{from{transform:scale(.92) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
 .modal .tag{
@@ -162,15 +196,12 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 .answers button.wrong{background:#5b1a1a;border-color:var(--danger)}
 .answers button:disabled{cursor:default;opacity:.85}
 .answers button.correct,.answers button.wrong{font-weight:600}
-.feedback{
-  margin-top:12px;font-size:.87rem;line-height:1.5;border-radius:11px;padding:12px 14px;display:none;
-}
+.feedback{margin-top:12px;font-size:.87rem;line-height:1.5;border-radius:11px;padding:12px 14px;display:none}
 .feedback.ok{display:block;background:rgba(46,204,113,.12);border:1px solid var(--ok)}
 .feedback.ko{display:block;background:rgba(255,82,82,.1);border:1px solid var(--danger)}
 .modal .actions{margin-top:16px;display:flex;gap:10px;justify-content:flex-end}
 .modal .actions button{width:auto;padding:10px 20px}
 
-/* écran intro & fin */
 .bigmodal{width:min(700px,100%)}
 .bigmodal h2{font-size:2.1rem;color:var(--alyzia-orange)}
 .bigmodal .rules{margin:14px 0;display:flex;flex-direction:column;gap:10px;font-size:.94rem}
@@ -184,40 +215,16 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 .grade{text-align:center;font-size:1.1rem;color:var(--ink-dim);margin-bottom:6px}
 .record{text-align:center;font-weight:700;color:var(--line-yellow)}
 
-/* toast */
 #toast{
   position:absolute;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);
   background:rgba(10,24,44,.96);border:1px solid var(--danger);color:var(--ink);
   padding:10px 20px;border-radius:99px;font-size:.86rem;opacity:0;transition:all .3s;pointer-events:none;
-  max-width:88%;text-align:center;z-index:20;box-shadow:0 8px 26px rgba(0,0,0,.5);
+  max-width:88%;text-align:center;z-index:8;box-shadow:0 8px 26px rgba(0,0,0,.5);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.good{border-color:var(--ok)}
 
-/* SVG interactions */
-.hz{cursor:pointer}
-.hz:hover .hitring{opacity:.55}
-.hitring{opacity:0;transition:opacity .2s}
-.hz.solved{cursor:default}
-.hz.solved .hitring{opacity:0!important}
-.checkmark{opacity:0;transition:opacity .4s}
-.hz.solved .checkmark{opacity:1}
-.hz.hinted .hintpulse{animation:pulse 1.1s ease-out 3}
-.hintpulse{opacity:0;transform-origin:center}
-@keyframes pulse{
-  0%{opacity:.85;r:6}
-  100%{opacity:0;r:36}
-}
-.decoy{cursor:pointer}
-.decoy:hover .decoyring{opacity:.45}
-.decoyring{opacity:0;transition:opacity .2s}
-
-/* accessibilité */
 :focus-visible{outline:3px solid var(--line-yellow);outline-offset:2px}
-.hz:focus-visible{outline:none}
-.hz:focus-visible .hitring{opacity:.8}
-.decoy:focus-visible{outline:none}
-.decoy:focus-visible .decoyring{opacity:.7}
 
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{
@@ -227,13 +234,14 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 }
 
 @media(max-width:900px){
-  main{flex-direction:column}
+  main{flex-direction:column;align-items:stretch}
+  #mapwrap{max-height:none}
   aside{width:100%;flex-direction:row;flex-wrap:wrap}
   aside .card{flex:1;min-width:230px}
-  #mapwrap{min-height:52vh}
   .brand .t{font-size:1.3rem}
   .hud .box{min-width:78px;padding:5px 10px}
   .hud .val{font-size:1.25rem}
+  .pin{width:60px;height:60px}
 }
 </style>
 </head>
@@ -254,165 +262,9 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 
 <main>
   <div id="mapwrap">
-    <svg id="scene" viewBox="0 0 1200 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vue aérienne d'un poste avion avec des risques à détecter">
-      <defs>
-        <!-- tarmac béton réaliste -->
-        <pattern id="apron" width="200" height="200" patternUnits="userSpaceOnUse">
-          <rect width="200" height="200" fill="#414852"/>
-          <path d="M0 0 H200 M0 100 H200 M100 0 V200 M0 0 V200" stroke="#363c45" stroke-width="2.5"/>
-          <circle cx="30" cy="52" r="1.1" fill="#4b525c"/>
-          <circle cx="120" cy="30" r="1.3" fill="#3a4048"/>
-          <circle cx="160" cy="150" r="1" fill="#4d545e"/>
-          <circle cx="70" cy="170" r="1.2" fill="#383e46"/>
-          <circle cx="185" cy="90" r=".9" fill="#4a515b"/>
-        </pattern>
-        <linearGradient id="fuse" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#fdfeff"/>
-          <stop offset=".18" stop-color="#eef3f8"/>
-          <stop offset=".5" stop-color="#d2dce7"/>
-          <stop offset=".82" stop-color="#adb9c7"/>
-          <stop offset="1" stop-color="#8a97a7"/>
-        </linearGradient>
-        <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#eaeff5"/>
-          <stop offset=".5" stop-color="#c6d0dc"/>
-          <stop offset="1" stop-color="#98a5b4"/>
-        </linearGradient>
-        <linearGradient id="wingB" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#98a5b4"/>
-          <stop offset=".5" stop-color="#c6d0dc"/>
-          <stop offset="1" stop-color="#eaeff5"/>
-        </linearGradient>
-        <radialGradient id="intake" cx="50%" cy="50%" r="50%">
-          <stop offset="0" stop-color="#080c11"/>
-          <stop offset=".55" stop-color="#1e242b"/>
-          <stop offset=".85" stop-color="#49525c"/>
-          <stop offset="1" stop-color="#6c7681"/>
-        </radialGradient>
-        <linearGradient id="nacelle" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#aeb8c3"/>
-          <stop offset=".5" stop-color="#7e8b99"/>
-          <stop offset="1" stop-color="#59636f"/>
-        </linearGradient>
-        <linearGradient id="glass" x1="0" y1="0" x2="1" y2=".5">
-          <stop offset="0" stop-color="#0a1a26"/>
-          <stop offset=".6" stop-color="#173341"/>
-          <stop offset="1" stop-color="#31586a"/>
-        </linearGradient>
-        <linearGradient id="livery" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#ff7a3c"/>
-          <stop offset="1" stop-color="#e0561b"/>
-        </linearGradient>
-        <filter id="groundShadow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="9"/>
-        </filter>
-        <filter id="pieShadow" x="-50%" y="-50%" width="200%" height="200%">
-          <feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity="0.45"/>
-        </filter>
-        <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="2.4"/>
-        </filter>
-      </defs>
-
-      <!-- ===== TARMAC ===== -->
-      <rect x="0" y="0" width="1200" height="780" fill="url(#apron)"/>
-      <!-- taches d'hydrocarbures / usure -->
-      <ellipse cx="640" cy="430" rx="120" ry="60" fill="#2f353d" opacity=".35" filter="url(#groundShadow)"/>
-      <ellipse cx="470" cy="300" rx="40" ry="24" fill="#2c323a" opacity=".4" filter="url(#groundShadow)"/>
-      <!-- voie de circulation à droite -->
-      <rect x="1080" y="0" width="120" height="780" fill="#2f353c"/>
-      <line x1="1140" y1="0" x2="1140" y2="780" stroke="#ffc61e" stroke-width="5"/>
-      <!-- ligne d'axe d'entrée du poste + arrêt -->
-      <path d="M300 390 H1140" stroke="#ffc61e" stroke-width="5" fill="none" opacity=".92"/>
-      <rect x="292" y="360" width="10" height="60" fill="#ffc61e"/>
-      <text x="250" y="384" fill="#ffd873" font-size="15" font-family="Barlow Condensed" letter-spacing="1">STOP K12</text>
-      <!-- traces de pneus vers le point d'arrêt -->
-      <path d="M900 372 H1120" stroke="#20262d" stroke-width="7" opacity=".4"/>
-      <path d="M900 408 H1120" stroke="#20262d" stroke-width="7" opacity=".4"/>
-      <!-- ZER : zone d'évolution restreinte -->
-      <rect x="230" y="110" width="740" height="560" fill="none" stroke="#ff5252" stroke-width="3" stroke-dasharray="14 10" opacity=".5"/>
-      <text x="244" y="136" fill="#ff8a8a" font-size="17" font-family="Barlow Condensed" letter-spacing="1">ZONE D'ÉVOLUTION RESTREINTE — POSTE K12</text>
-      <!-- marquages parking GSE -->
-      <rect x="60" y="60" width="120" height="230" fill="none" stroke="#fff" stroke-width="2.5" opacity=".45"/>
-      <text x="70" y="82" fill="#cfd8e2" font-size="14" font-family="Barlow Condensed" opacity=".75">PARKING GSE</text>
-      <rect x="60" y="470" width="120" height="240" fill="none" stroke="#fff" stroke-width="2.5" opacity=".45"/>
-      <text x="70" y="492" fill="#cfd8e2" font-size="14" font-family="Barlow Condensed" opacity=".75">PARKING GSE</text>
-
-      <!-- ===== AVION (groupe animé au départ) ===== -->
-      <g id="aircraft">
-        <!-- ombre au sol -->
-        <g filter="url(#groundShadow)" transform="translate(10,20)" fill="#05090f" opacity=".42">
-          <polygon points="500,368 470,120 512,120 610,368"/>
-          <polygon points="500,412 470,660 512,660 610,412"/>
-          <polygon points="330,372 268,300 300,300 372,372"/>
-          <polygon points="330,408 268,480 300,480 372,408"/>
-          <path d="M285 390 q0 -34 60 -34 h430 q80 0 110 34 q-30 34 -110 34 h-430 q-60 0 -60 -34 Z"/>
-        </g>
-
-        <!-- ailes -->
-        <polygon points="500,368 470,120 512,120 610,368" fill="url(#wing)" stroke="#8d9aa8" stroke-width="2"/>
-        <polygon points="500,412 470,660 512,660 610,412" fill="url(#wingB)" stroke="#8d9aa8" stroke-width="2"/>
-        <!-- lignes de panneaux ailes -->
-        <line x1="503" y1="150" x2="590" y2="360" stroke="#9aa6b4" stroke-width="1.2" opacity=".6"/>
-        <line x1="503" y1="630" x2="590" y2="420" stroke="#9aa6b4" stroke-width="1.2" opacity=".6"/>
-        <!-- winglets -->
-        <polygon points="470,120 512,120 508,101 476,101" fill="#7d8a99" stroke="#5e6a77" stroke-width="1.5"/>
-        <polygon points="470,660 512,660 508,679 476,679" fill="#7d8a99" stroke="#5e6a77" stroke-width="1.5"/>
-        <!-- feux de navigation -->
-        <circle cx="491" cy="118" r="5" fill="#ff3b3b" filter="url(#softGlow)"/>
-        <circle cx="491" cy="118" r="2.6" fill="#ff8a8a"/>
-        <circle cx="491" cy="662" r="5" fill="#38e06a" filter="url(#softGlow)"/>
-        <circle cx="491" cy="662" r="2.6" fill="#9af5b5"/>
-
-        <!-- réacteurs -->
-        <g id="engineTop">
-          <rect x="516" y="226" width="86" height="38" rx="18" fill="url(#nacelle)" stroke="#4e5862" stroke-width="2"/>
-          <ellipse cx="522" cy="245" rx="9" ry="17" fill="url(#intake)" stroke="#3a424b" stroke-width="1.5"/>
-          <ellipse cx="522" cy="245" rx="2.5" ry="5" fill="#0a0e13"/>
-        </g>
-        <rect x="516" y="516" width="86" height="38" rx="18" fill="url(#nacelle)" stroke="#4e5862" stroke-width="2"/>
-        <ellipse cx="522" cy="535" rx="9" ry="17" fill="url(#intake)" stroke="#3a424b" stroke-width="1.5"/>
-        <ellipse cx="522" cy="535" rx="2.5" ry="5" fill="#0a0e13"/>
-
-        <!-- empennage horizontal -->
-        <polygon points="330,372 268,300 300,300 372,372" fill="url(#wing)" stroke="#8d9aa8" stroke-width="2"/>
-        <polygon points="330,408 268,480 300,480 372,408" fill="url(#wingB)" stroke="#8d9aa8" stroke-width="2"/>
-        <!-- dérive verticale (vue de dessus) -->
-        <polygon points="330,390 250,378 246,390 250,402" fill="#cfd8e2" stroke="#8d9aa8" stroke-width="2"/>
-
-        <!-- fuselage -->
-        <path d="M285 390 q0 -34 60 -34 h430 q80 0 110 34 q-30 34 -110 34 h-430 q-60 0 -60 -34 Z" fill="url(#fuse)" stroke="#8d9aa8" stroke-width="2.5"/>
-        <!-- reflet spéculaire haut + ombre bas -->
-        <path d="M350 361 h430" stroke="#ffffff" stroke-width="4" opacity=".45" stroke-linecap="round"/>
-        <path d="M350 419 h430" stroke="#5b6675" stroke-width="4" opacity=".3" stroke-linecap="round"/>
-        <!-- livrée -->
-        <path d="M340 411 h420 q60 0 92 -13 l0 8 q-32 15 -92 15 h-420 Z" fill="url(#livery)" opacity=".92"/>
-        <!-- cockpit / verrière -->
-        <path d="M842 378 q30 4 44 12 q-14 8 -44 12 Z" fill="url(#glass)" stroke="#22303f" stroke-width="1"/>
-        <path d="M846 380 q16 3 24 6" stroke="#bfe0ef" stroke-width="1.6" opacity=".7" fill="none"/>
-        <!-- hublots -->
-        <g fill="#22303f">
-          <circle cx="400" cy="378" r="3"/><circle cx="420" cy="378" r="3"/><circle cx="440" cy="378" r="3"/>
-          <circle cx="460" cy="378" r="3"/><circle cx="640" cy="378" r="3"/><circle cx="660" cy="378" r="3"/>
-          <circle cx="680" cy="378" r="3"/><circle cx="700" cy="378" r="3"/><circle cx="720" cy="378" r="3"/>
-        </g>
-        <!-- balise anticollision -->
-        <circle cx="560" cy="374" r="3.4" fill="#ff3b3b" filter="url(#softGlow)"/>
-        <!-- trains -->
-        <rect x="845" y="400" width="10" height="16" rx="3" fill="#2c333b"/>
-        <rect x="536" y="400" width="12" height="18" rx="3" fill="#2c333b"/>
-      </g>
-
-      <!-- tracteur pushback + barre -->
-      <g id="tug">
-        <rect x="923" y="366" width="74" height="48" rx="9" fill="url(#livery)" stroke="#b34715" stroke-width="2"/>
-        <rect x="985" y="374" width="22" height="32" rx="5" fill="#22303f"/>
-        <rect x="898" y="384" width="30" height="12" rx="3" fill="#77828e"/>
-        <text x="930" y="395" font-size="13" fill="#fff" font-family="Barlow Condensed" font-weight="700">TUG 07</text>
-      </g>
-
-      <!-- couche de jeu (risques + leurres injectés en JS) -->
-    </svg>
+    <img id="apron" src="assets/apron.jpg" alt="Vue aérienne du poste avion K12 avec des risques à détecter" draggable="false">
+    <div id="hotspots" role="group" aria-label="Zone de détection des risques"></div>
+    <div id="stamp">Clear to push ✓</div>
     <div id="toast"></div>
   </div>
 
@@ -425,7 +277,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
     <div class="card">
       <h3>🎛️ Poste de contrôle</h3>
       <button class="btn" id="hintBtn">💡 Indice (−50 pts)</button>
-      <p class="hintnote">Cliquez sur la carte pour signaler un risque.<br>Fausse alerte : −20 pts · Clic dans le vide : −10 pts.</p>
+      <p class="hintnote">Survolez / explorez la photo pour repérer les risques, puis cliquez.<br>Fausse alerte : −20 pts · Clic dans le vide : −10 pts.</p>
       <div class="legend" style="margin:10px 0">
         <span><i style="background:var(--alyzia-orange)"></i>Risque opérationnel</span>
         <span><i style="background:var(--tms)"></i>Risque TMS / santé</span>
@@ -442,7 +294,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
     <h2>Vol AZ 4521 — départ dans 6 minutes</h2>
     <p class="desc">Le commandant demande le repoussage. Mais le poste K12 n'est <b>pas sécurisé</b> : des risques pour l'avion <b>et pour la santé des agents</b> sont présents sur le tarmac.</p>
     <div class="rules">
-      <div><span class="ic">🔎</span><span><b>Trouvez tous les risques</b> en cliquant directement sur la carte du poste.</span></div>
+      <div><span class="ic">🔎</span><span><b>Trouvez tous les risques</b> en explorant la photo du poste : survolez, un cercle apparaît sur les zones à inspecter, puis cliquez.</span></div>
       <div><span class="ic">✅</span><span>Pour chaque risque, <b>choisissez la bonne action corrective</b> : c'est elle qui valide la levée de l'obstacle.</span></div>
       <div><span class="ic">🎲</span><span><b>Les risques changent à chaque partie</b> (tirage aléatoire) : impossible d'apprendre par cœur, il faut vraiment observer.</span></div>
       <div><span class="ic">🦴</span><span>Certains risques concernent les <b>TMS (troubles musculo-squelettiques)</b> : postures, port de charges, gestes répétitifs.</span></div>
@@ -476,11 +328,12 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
 
 <script>
 /* =====================================================
-   BANQUE DE RISQUES (tirage aléatoire à chaque partie)
+   BANQUE DE RISQUES (positions en % sur la photo du poste)
+   x = % largeur (0 gauche → 100 droite) · y = % hauteur (0 haut → 100 bas)
    ===================================================== */
 const ALL_HAZARDS = [
  {
-  id:"cales", tms:false, x:848, y:432,
+  id:"cales", tms:false, x:35, y:57,
   title:"Cales toujours en place",
   check:"Cales retirées et rangées",
   desc:"Les cales du train avant sont encore positionnées. L'avion ne peut pas être repoussé.",
@@ -493,10 +346,10 @@ const ALL_HAZARDS = [
   fb:"✔ Retrait sur ordre, jamais d'initiative isolée. Et côté TMS : on se baisse en <b>pliant les genoux, dos droit</b>, on ne se penche pas en avant bras tendus."
  },
  {
-  id:"escabeau", tms:true, x:772, y:322,
-  title:"Escabeau encore accosté",
+  id:"escabeau", tms:true, x:71, y:60,
+  title:"Escabeau / passerelle arrière accosté",
   check:"Escabeau dégagé et freiné",
-  desc:"Un escabeau est toujours accosté à la porte avant. Risque de collision au repoussage et de chute de hauteur.",
+  desc:"L'escabeau passagers est toujours accosté à la porte arrière. Risque de collision au repoussage et de chute de hauteur.",
   q:"Comment dégager l'escabeau en préservant votre dos ?",
   answers:[
    {t:"Le tirer seul en marche arrière, c'est plus rapide", ok:false},
@@ -506,10 +359,10 @@ const ALL_HAZARDS = [
   fb:"✔ <b>Pousser plutôt que tirer</b> : l'effort est mieux réparti et le dos reste aligné. Un GSE se déplace à deux dès que la visibilité ou la pente l'exige, et se gare freiné hors zone."
  },
  {
-  id:"gpu", tms:true, x:930, y:474,
+  id:"gpu", tms:true, x:19, y:73,
   title:"Câble GPU encore branché",
   check:"GPU débranché, câble lové",
-  desc:"Le groupe de parc (GPU) est encore raccordé à l'avion. Le câble traverse la zone du train avant.",
+  desc:"Le groupe de parc (GPU) est encore raccordé à l'avion. Le câble traverse la zone de circulation.",
   q:"Quelle séquence est correcte ?",
   answers:[
    {t:"Débrancher après accord cockpit, lover le câble sans torsion du poignet, main sous la fiche", ok:true},
@@ -519,10 +372,10 @@ const ALL_HAZARDS = [
   fb:"✔ Débranchement coordonné avec le poste de pilotage. Le lovage se fait <b>en grandes boucles, sans rotation forcée du poignet</b> — les tendinites du poignet et du coude sont des TMS fréquents en piste."
  },
  {
-  id:"fod", tms:true, x:1022, y:398,
+  id:"fod", tms:true, x:86, y:44,
   title:"FOD sur la trajectoire",
   check:"FOD ramassé (bac FOD)",
-  desc:"Un débris métallique (FOD) se trouve sur la ligne de sortie du poste. Danger majeur pour les moteurs et les pneus.",
+  desc:"Un débris (FOD) se trouve sur la voie de circulation, sur la trajectoire de sortie du poste. Danger majeur pour les moteurs et les pneus.",
   q:"Le bon réflexe FOD, c'est :",
   answers:[
    {t:"Le pousser du pied hors de la ligne jaune", ok:false},
@@ -532,20 +385,20 @@ const ALL_HAZARDS = [
   fb:"✔ Tout agent qui voit un FOD le ramasse : c'est l'affaire de tous. Pour un objet au sol, on <b>fléchit les jambes</b> plutôt que d'arrondir le dos — même pour un objet léger, la répétition du geste use les lombaires."
  },
  {
-  id:"bagagiste", tms:true, x:700, y:530,
+  id:"bagagiste", tms:true, x:32, y:82,
   title:"Port de charge dos rond",
   check:"Manutention sécurisée en soute",
-  desc:"Un agent charge la soute vrac : dos arrondi, bagage tenu loin du corps, seul sur l'opération.",
+  desc:"Un agent charge les chariots bagages : dos arrondi, bagage tenu loin du corps, seul sur l'opération.",
   q:"Que lui conseillez-vous ?",
   answers:[
-   {t:"Accélérer : moins on passe de temps en soute, moins on se fatigue", ok:false},
+   {t:"Accélérer : moins on passe de temps à charger, moins on se fatigue", ok:false},
    {t:"Plier les genoux, garder la charge près du corps, pivoter avec les pieds — et demander de l'aide ou une aide mécanique pour les bagages lourds", ok:true},
    {t:"Porter deux bagages à la fois pour diviser le nombre de trajets", ok:false}
   ],
   fb:"✔ Les lombalgies liées au port de charges sont la <b>1ʳᵉ cause d'accident du travail en escale</b>. Charge collée au corps, genoux fléchis, pas de torsion du tronc : on tourne avec les pieds, jamais avec le dos."
  },
  {
-  id:"chariot", tms:false, x:492, y:648,
+  id:"chariot", tms:false, x:44, y:85,
   title:"Chariot bagages non freiné",
   check:"Chariot freiné / attelé",
   desc:"Un chariot à bagages stationne dans la ZER, frein non serré. Par vent fort ou souffle réacteur, il peut dériver vers l'avion.",
@@ -558,7 +411,7 @@ const ALL_HAZARDS = [
   fb:"✔ Tout matériel non utilisé sort de la ZER, <b>freiné et attelé</b>. Un chariot qui dérive au souffle peut percuter un agent ou perforer un fuselage."
  },
  {
-  id:"picb", tms:true, x:568, y:214,
+  id:"picb", tms:true, x:52, y:63,
   title:"Agent sans protection auditive",
   check:"PICB portés près du moteur",
   desc:"Un agent travaille à proximité immédiate du réacteur sans protection auditive.",
@@ -571,7 +424,7 @@ const ALL_HAZARDS = [
   fb:"✔ La surdité professionnelle est <b>irréversible</b>. Le port des PICB est permanent en zone d'évolution, pas seulement moteur tournant : un démarrage APU ou un engin peut survenir à tout moment."
  },
  {
-  id:"tuyau", tms:false, x:452, y:566,
+  id:"tuyau", tms:false, x:63, y:73,
   title:"Flexible carburant en travers",
   check:"Cheminement dégagé / balisé",
   desc:"Le flexible du camion avitailleur traverse le cheminement piéton des agents. Risque de chute de plain-pied.",
@@ -584,7 +437,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de plain-pied</b> (trébuchement, glissade) représentent une part majeure des accidents en escale — souvent avec entorses et TMS des membres inférieurs. On ne touche jamais un flexible en pression : on balise et on contourne."
  },
  {
-  id:"cone", tms:true, x:640, y:436,
+  id:"cone", tms:true, x:56, y:55,
   title:"Cône oublié sous le fuselage",
   check:"Cônes récupérés (tour avion)",
   desc:"Un cône de balisage est resté sous le ventre de l'avion après le traitement du vol.",
@@ -597,10 +450,10 @@ const ALL_HAZARDS = [
   fb:"✔ Le <b>tour avion final</b> (walk-around) permet justement de repérer cônes, trappes ouvertes et obstacles oubliés. Sous un fuselage, on s'accroupit — se pencher dos rond en extension est l'un des gestes les plus lésionnels."
  },
  {
-  id:"barre", tms:false, x:912, y:392,
+  id:"barre", tms:false, x:28, y:55,
   title:"Barre de tractage non vérifiée",
   check:"Barre + goupille vérifiées",
-  desc:"La barre de tractage est attelée, mais la goupille de sécurité (shear pin) n'a pas été contrôlée.",
+  desc:"La barre de tractage est attelée au tracteur, mais la goupille de sécurité (shear pin) n'a pas été contrôlée.",
   q:"Avant le push, il faut :",
   answers:[
    {t:"Vérifier visuellement l'attelage, la goupille de cisaillement et le by-pass avant tout mouvement", ok:true},
@@ -610,7 +463,7 @@ const ALL_HAZARDS = [
   fb:"✔ Une goupille cisaillée non détectée = perte de contrôle de l'avion au push. Le contrôle croisé avant mouvement est un <b>arrêt-réflexe</b> : 30 secondes qui évitent l'accident majeur."
  },
  {
-  id:"casque", tms:true, x:790, y:452,
+  id:"casque", tms:true, x:43, y:70,
   title:"Agent casque-micro : posture statique",
   check:"Communication + posture agent casque",
   desc:"L'agent casque est en position depuis 20 minutes, nuque fléchie vers sa tablette, câble tendu vers la prise avion.",
@@ -623,7 +476,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les TMS ne viennent pas que du port de charges : les <b>postures statiques prolongées</b> (nuque fléchie, bras levés) sont tout aussi lésionnelles. Varier la posture, régler les hauteurs, faire des micro-pauses actives."
  },
  {
-  id:"soute", tms:false, x:352, y:470,
+  id:"soute", tms:false, x:47, y:52,
   title:"Trappe de soute restée ouverte",
   check:"Trappes de soute fermées/verrouillées",
   desc:"Une trappe de soute est encore ouverte et non verrouillée. Au repoussage, elle peut se rabattre ou accrocher un engin.",
@@ -636,7 +489,7 @@ const ALL_HAZARDS = [
   fb:"✔ Une trappe non verrouillée est un risque avion (accroche, dommage) <b>et</b> corporel (chute d'objet, choc). La fermeture-verrouillage fait partie de la check-list de départ, confirmée au tour avion final."
  },
  {
-  id:"flaque", tms:true, x:620, y:600,
+  id:"flaque", tms:true, x:44, y:62,
   title:"Flaque d'hydrocarbure au sol",
   check:"Épandage balisé / traité",
   desc:"Une flaque d'huile ou de kérosène s'étale sur le cheminement des agents. Sol glissant = risque de chute.",
@@ -649,10 +502,10 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de plain-pied par glissade</b> génèrent entorses, lombalgies et fractures. Un épandage se balise et se traite avec un absorbant adapté — on ne s'improvise pas dépollueur, et on ne traverse jamais une flaque glissante."
  },
  {
-  id:"uld", tms:false, x:300, y:180,
+  id:"uld", tms:false, x:26, y:80,
   title:"Conteneur ULD non verrouillé",
   check:"ULD arrimé / verrous engagés",
-  desc:"Un conteneur ULD est posé sur son dolly, mais les verrous d'arrimage ne sont pas engagés.",
+  desc:"Un conteneur / caisson est posé sur son dolly, mais les verrous d'arrimage ne sont pas engagés.",
   q:"Avant tout déplacement du dolly :",
   answers:[
    {t:"Engager les verrous d'arrimage et vérifier le calage avant de tracter", ok:true},
@@ -662,7 +515,7 @@ const ALL_HAZARDS = [
   fb:"✔ Un ULD non verrouillé peut basculer ou chuter du dolly : risque d'écrasement grave. Les <b>verrous d'arrimage</b> se contrôlent systématiquement — jamais retenir une charge lourde avec le corps."
  },
  {
-  id:"marchepied", tms:true, x:380, y:300,
+  id:"marchepied", tms:true, x:67, y:64,
   title:"Agent grimpé sur une caisse",
   check:"Accès en hauteur avec moyen adapté",
   desc:"Pour atteindre une porte, un agent est monté sur une caisse instable au lieu d'utiliser un marchepied.",
@@ -675,7 +528,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de hauteur</b>, même de faible hauteur, provoquent des lésions graves (chevilles, poignets, dos). On utilise toujours un moyen d'accès adapté et stable, jamais un support de fortune."
  },
  {
-  id:"telephone", tms:false, x:880, y:300,
+  id:"telephone", tms:false, x:58, y:74,
   title:"Agent au téléphone en zone d'évolution",
   check:"Attention maintenue pendant la manœuvre",
   desc:"Un agent consulte son téléphone en pleine zone d'évolution, pendant la phase de repoussage.",
@@ -691,11 +544,11 @@ const ALL_HAZARDS = [
 
 /* leurres : éléments conformes (cliquer = fausse alerte pédagogique) */
 const ALL_DECOYS = [
- {id:"d1", type:"convoyeur", x:120, y:600, msg:"Tapis convoyeur garé, freiné, hors ZER. RAS ✔"},
- {id:"d2", type:"gse",       x:120, y:170, msg:"GSE stationné en zone dédiée, frein serré. RAS ✔"},
- {id:"d3", type:"agentHV",   x:1000, y:610, msg:"Agent équipé : gilet HV, PICB, chaussures de sécurité. RAS ✔"},
- {id:"d4", type:"extincteur",x:196, y:400, msg:"Extincteur présent et accessible au poste. RAS ✔"},
- {id:"d5", type:"coneOK",    x:1000, y:150, msg:"Cônes de balisage correctement disposés. RAS ✔"}
+ {id:"d1", x:29, y:39, msg:"Passerelle télescopique correctement accostée et sécurisée. RAS ✔"},
+ {id:"d2", x:44, y:7, msg:"Engin de piste garé hors ZER, frein serré. RAS ✔"},
+ {id:"d3", x:61, y:67, msg:"Agent équipé : gilet HV, PICB et chaussures de sécurité. RAS ✔"},
+ {id:"d4", x:27, y:45, msg:"Matériel de piste rangé et sécurisé hors zone. RAS ✔"},
+ {id:"d5", x:60, y:38, msg:"Cônes de balisage correctement disposés le long de la voie. RAS ✔"}
 ];
 
 /* ------- tirage aléatoire de la partie ------- */
@@ -707,160 +560,40 @@ const DECOYS  = pickRandom(ALL_DECOYS, 3);
 
 <script>
 /* =====================================================
-   DESSIN DES ÉLÉMENTS SUR LA CARTE
+   MISE EN PLACE DES ZONES DE RISQUE SUR LA PHOTO
    ===================================================== */
-const svg = document.getElementById('scene');
-const NS = "http://www.w3.org/2000/svg";
-function el(tag, attrs, parent){
-  const e = document.createElementNS(NS, tag);
-  for(const k in attrs) e.setAttribute(k, attrs[k]);
-  (parent||svg).appendChild(e);
-  return e;
-}
-function person(g, x, y, color, bent){
-  el('ellipse',{cx:x,cy:y,rx:11,ry: bent?8:11,fill:color,stroke:'#111',['stroke-width']:1.2},g);
-  el('circle',{cx:x + (bent? 9:0),cy:y - (bent? 2:0),r:5.5,fill:'#f1c27d',stroke:'#111',['stroke-width']:1},g);
-}
+const $=id=>document.getElementById(id);
+const hotspots=$('hotspots');
+const solvedSet=new Set();
 
-/* pictogrammes par risque */
-const DRAW = {
- cales(g,x,y){
-   el('polygon',{points:`${x-14},${y+8} ${x-4},${y-6} ${x-4},${y+8}`,fill:'#f26522',stroke:'#7a2f0d',['stroke-width']:1.5},g);
-   el('polygon',{points:`${x+14},${y+8} ${x+4},${y-6} ${x+4},${y+8}`,fill:'#f26522',stroke:'#7a2f0d',['stroke-width']:1.5},g);
- },
- escabeau(g,x,y){
-   el('rect',{x:x-16,y:y-26,width:32,height:52,rx:4,fill:'#8f9aa6',stroke:'#5c6670',['stroke-width']:2},g);
-   for(let i=0;i<4;i++) el('line',{x1:x-12,y1:y-18+i*12,x2:x+12,y2:y-18+i*12,stroke:'#5c6670',['stroke-width']:2},g);
-   el('circle',{cx:x-13,cy:y+23,r:3.5,fill:'#22303f'},g);
-   el('circle',{cx:x+13,cy:y+23,r:3.5,fill:'#22303f'},g);
- },
- gpu(g,x,y){
-   el('rect',{x:x-4,y:y-16,width:44,height:32,rx:5,fill:'#556270',stroke:'#39434e',['stroke-width']:2},g);
-   el('text',{x:x+2,y:y+4,fill:'#fff','font-size':12,'font-family':'Barlow Condensed','font-weight':700},g).textContent='GPU';
-   el('path',{d:`M${x-4} ${y} q -34 -8 -52 -44`,fill:'none',stroke:'#111820',['stroke-width']:4,'stroke-linecap':'round'},g);
- },
- fod(g,x,y){
-   el('path',{d:`M${x-8} ${y} l5 -7 6 2 4 6 -3 6 -8 2 z`,fill:'#9aa5b1',stroke:'#4a545f',['stroke-width']:1.5},g);
-   el('circle',{cx:x+1,cy:y+1,r:2.4,fill:'#4a545f'},g);
- },
- bagagiste(g,x,y){
-   person(g,x,y,'#f26522',true);
-   el('rect',{x:x+13,y:y-4,width:18,height:12,rx:2,fill:'#7c5a3a',stroke:'#4e3a26',['stroke-width']:1.2},g);
-   el('path',{d:`M${x-2} ${y-14} q10 -8 20 -2`,fill:'none',stroke:'#ff5252',['stroke-width']:2.5,'stroke-dasharray':'4 3'},g);
- },
- chariot(g,x,y){
-   el('rect',{x:x-24,y:y-14,width:48,height:28,rx:4,fill:'#22303f',stroke:'#0e1620',['stroke-width']:2},g);
-   el('rect',{x:x-18,y:y-10,width:14,height:20,rx:2,fill:'#7c5a3a'},g);
-   el('rect',{x:x+2,y:y-10,width:14,height:20,rx:2,fill:'#946c46'},g);
-   el('circle',{cx:x-16,cy:y+16,r:4,fill:'#0e1620'},g);
-   el('circle',{cx:x+16,cy:y+16,r:4,fill:'#0e1620'},g);
- },
- picb(g,x,y){ person(g,x,y,'#ffd23f',false); },
- tuyau(g,x,y){
-   el('rect',{x:x-70,y:y+46,width:64,height:36,rx:6,fill:'#c0392b',stroke:'#7d241a',['stroke-width']:2},g);
-   el('text',{x:x-62,y:y+68,fill:'#fff','font-size':12,'font-family':'Barlow Condensed','font-weight':700},g).textContent='FUEL';
-   el('path',{d:`M${x-8} ${y+48} q 30 -30 66 -44 q 30 -12 54 -8`,fill:'none',stroke:'#1a222b',['stroke-width']:6,'stroke-linecap':'round'},g);
- },
- cone(g,x,y){
-   el('polygon',{points:`${x},${y-11} ${x+8},${y+7} ${x-8},${y+7}`,fill:'#f26522',stroke:'#7a2f0d',['stroke-width']:1.4},g);
-   el('rect',{x:x-10,y:y+6,width:20,height:4,rx:2,fill:'#f26522'},g);
-   el('line',{x1:x-4,y1:y-2,x2:x+4,y2:y-2,stroke:'#fff',['stroke-width']:2.5},g);
- },
- barre(g,x,y){
-   el('rect',{x:x-42,y:y-4,width:44,height:8,rx:4,fill:'#8f9aa6',stroke:'#5c6670',['stroke-width']:1.5},g);
-   el('circle',{cx:x-20,cy:y,r:4,fill:'#ff5252',stroke:'#7d241a',['stroke-width']:1.2},g);
- },
- casque(g,x,y){
-   person(g,x,y,'#2ecc71',true);
-   el('path',{d:`M${x+6} ${y-8} q 20 -14 34 -34`,fill:'none',stroke:'#111820',['stroke-width']:2.5},g);
- },
- soute(g,x,y){
-   el('rect',{x:x-20,y:y-14,width:40,height:28,rx:4,fill:'#c9d3dd',stroke:'#8b97a6',['stroke-width']:2},g);
-   el('rect',{x:x-14,y:y-8,width:28,height:16,rx:2,fill:'#1b2530',stroke:'#0d141b',['stroke-width']:1.5},g);
-   el('path',{d:`M${x-14} ${y-8} l-11 -9 28 0 z`,fill:'#e2e9f0',stroke:'#8b97a6',['stroke-width']:1.5},g);
- },
- flaque(g,x,y){
-   el('ellipse',{cx:x,cy:y,rx:21,ry:12,fill:'#12171b',opacity:.9},g);
-   el('ellipse',{cx:x-5,cy:y-3,rx:8,ry:4,fill:'#3a4b52',opacity:.6},g);
-   el('ellipse',{cx:x+7,cy:y+2,rx:5,ry:2.6,fill:'#5b6f5a',opacity:.5},g);
- },
- uld(g,x,y){
-   el('polygon',{points:`${x-22},${y+6} ${x-22},${y-8} ${x-12},${y-16} ${x+22},${y-16} ${x+22},${y+6}`,fill:'#9aa6b2',stroke:'#5c6670',['stroke-width']:2},g);
-   el('rect',{x:x-25,y:y+6,width:50,height:7,rx:2,fill:'#2c333b'},g);
-   el('circle',{cx:x-16,cy:y+15,r:4,fill:'#0e1620'},g);
-   el('circle',{cx:x+16,cy:y+15,r:4,fill:'#0e1620'},g);
-   el('rect',{x:x-3,y:y+4,width:6,height:6,fill:'#ff5252'},g);
- },
- marchepied(g,x,y){
-   el('rect',{x:x-12,y:y+5,width:24,height:14,rx:2,fill:'#7c5a3a',stroke:'#4e3a26',['stroke-width']:1.5},g);
-   person(g,x,y-8,'#f26522',false);
-   el('path',{d:`M${x-17} ${y+3} q-4 -6 0 -11`,fill:'none',stroke:'#ff5252',['stroke-width']:2.5,'stroke-dasharray':'3 3'},g);
- },
- telephone(g,x,y){
-   person(g,x,y,'#f26522',false);
-   el('rect',{x:x+7,y:y-12,width:7,height:12,rx:2,fill:'#22303f',stroke:'#0e1620',['stroke-width']:1},g);
-   el('path',{d:`M${x+16} ${y-16} q6 -2 9 3`,fill:'none',stroke:'#ffc61e',['stroke-width']:2},g);
- }
-};
-
-/* dessin des leurres selon leur type */
-function drawDecoy(g,d){
- const x=d.x, y=d.y;
- if(d.type==='convoyeur'){
-   el('rect',{x:x-30,y:y-12,width:60,height:24,rx:5,fill:'#556270',stroke:'#39434e',['stroke-width']:2},g);
-   el('line',{x1:x-24,y1:y,x2:x+24,y2:y,stroke:'#39434e',['stroke-width']:2},g);
-   el('circle',{cx:x-20,cy:y+14,r:4,fill:'#0e1620'},g);
-   el('circle',{cx:x+20,cy:y+14,r:4,fill:'#0e1620'},g);
- } else if(d.type==='gse'){
-   el('rect',{x:x-26,y:y-14,width:52,height:28,rx:5,fill:'#2c5f8a',stroke:'#1b3b56',['stroke-width']:2},g);
-   el('circle',{cx:x-16,cy:y+16,r:4,fill:'#0e1620'},g);
-   el('circle',{cx:x+16,cy:y+16,r:4,fill:'#0e1620'},g);
- } else if(d.type==='agentHV'){
-   person(g,x,y,'#ffd23f',false);
-   el('path',{d:`M${x-7} ${y+3} h14`,stroke:'#e0561b',['stroke-width']:2,fill:'none'},g);
- } else if(d.type==='extincteur'){
-   el('rect',{x:x-6,y:y-14,width:12,height:26,rx:5,fill:'#c0392b',stroke:'#7d241a',['stroke-width']:1.6},g);
-   el('rect',{x:x-3,y:y-19,width:6,height:6,rx:2,fill:'#22303f'},g);
- } else if(d.type==='coneOK'){
-   for(let i=-1;i<=1;i++){
-     const cx=x+i*20;
-     el('polygon',{points:`${cx},${y-9} ${cx+7},${y+6} ${cx-7},${y+6}`,fill:'#f26522',stroke:'#7a2f0d',['stroke-width']:1.2},g);
-   }
- }
+function makePin(cls,x,y,label){
+  const b=document.createElement('button');
+  b.className='pin '+cls;
+  b.style.left=x+'%'; b.style.top=y+'%';
+  b.setAttribute('type','button');
+  b.setAttribute('aria-label',label);
+  b.innerHTML='<span class="ring"></span><span class="check"></span>';
+  return b;
 }
-
-const gameLayer = el('g',{id:'gameLayer'});
-const solvedSet = new Set();
 
 HAZARDS.forEach(h=>{
-  const g = el('g',{class:'hz','data-id':h.id,tabindex:0,role:'button','aria-label':'Élément à inspecter'},gameLayer);
-  const pg = el('g',{filter:'url(#pieShadow)'},g);   // pictogramme avec ombre portée
-  DRAW[h.id](pg,h.x,h.y);
-  el('circle',{class:'hitring',cx:h.x,cy:h.y,r:30,fill:'none',stroke:'#ffc61e',['stroke-width']:2.5,'stroke-dasharray':'6 5'},g);
-  el('circle',{class:'hintpulse',cx:h.x,cy:h.y,r:8,fill:'none',stroke:'#ffc61e',['stroke-width']:3},g);
-  const chk = el('g',{class:'checkmark'},g);
-  el('circle',{cx:h.x+22,cy:h.y-22,r:11,fill:'#2ecc71',stroke:'#0f6e3c',['stroke-width']:2},chk);
-  el('path',{d:`M${h.x+16.5} ${h.y-22} l4 4.5 7 -8`,fill:'none',stroke:'#fff',['stroke-width']:3,'stroke-linecap':'round','stroke-linejoin':'round'},chk);
-  el('circle',{cx:h.x,cy:h.y,r:34,fill:'transparent'},g);   // zone de clic élargie
-  g.addEventListener('click',()=>openHazard(h,g));
-  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openHazard(h,g);}});
+  const p=makePin('hz',h.x,h.y,'Élément à inspecter');
+  p.dataset.id=h.id;
+  p.addEventListener('click',()=>openHazard(h,p));
+  hotspots.appendChild(p);
 });
 
 DECOYS.forEach(d=>{
-  const g = el('g',{class:'decoy','data-id':d.id,tabindex:0,role:'button','aria-label':'Élément à inspecter'},gameLayer);
-  const pg = el('g',{filter:'url(#pieShadow)'},g);
-  drawDecoy(pg,d);
-  el('circle',{class:'decoyring',cx:d.x,cy:d.y,r:30,fill:'none',stroke:'#9db1cf',['stroke-width']:2,'stroke-dasharray':'4 5'},g);
-  el('circle',{cx:d.x,cy:d.y,r:30,fill:'transparent'},g);
-  const trigger=()=>{ if(!started||ended) return; addScore(-20); toast(d.msg+' (fausse alerte −20)',false); };
-  g.addEventListener('click',trigger);
-  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();trigger();}});
+  const p=makePin('decoy',d.x,d.y,'Élément à inspecter');
+  p.dataset.id=d.id;
+  p.addEventListener('click',()=>{ if(!started||ended) return; addScore(-20); toast(d.msg+' (fausse alerte −20)',false); });
+  hotspots.appendChild(p);
 });
 
-/* clic tarmac vide = fausse alerte */
-svg.addEventListener('click',e=>{
+/* clic ailleurs sur la photo = fausse alerte */
+$('mapwrap').addEventListener('click',e=>{
   if(!started||ended) return;
-  if(e.target.closest('.hz')||e.target.closest('.decoy')) return;
+  if(e.target.closest('.pin')) return;
   addScore(-10);
   toast('Rien à signaler ici. Observez le poste méthodiquement (−10)',false);
 });
@@ -871,9 +604,7 @@ svg.addEventListener('click',e=>{
 const TOTAL_TIME=360;
 let score=0, found=0, started=false, ended=false, timeLeft=TOTAL_TIME, timerInt=null;
 let stats={wrong:0, hints:0};
-const $=id=>document.getElementById(id);
 
-/* check-list */
 const listEl=$('checklist');
 HAZARDS.forEach(h=>{
   const li=document.createElement('li');
@@ -903,10 +634,10 @@ function tick(){
 }
 
 /* modale question */
-let current=null, currentG=null;
-function openHazard(h,g){
+let current=null, currentP=null;
+function openHazard(h,p){
   if(!started||ended||solvedSet.has(h.id)) return;
-  current=h; currentG=g;
+  current=h; currentP=p;
   $('qTag').textContent = h.tms ? 'Risque TMS / Santé' : 'Risque opérationnel';
   $('qTag').className = 'tag'+(h.tms?' tms':'');
   $('qTitle').textContent=h.title;
@@ -931,7 +662,7 @@ function answer(a,btn,box,fb){
     [...box.children].forEach(b=>b.disabled=true);
     fb.className='feedback ok'; fb.innerHTML=current.fb;
     addScore(100); toast('Obstacle levé ✓ +100',true);
-    solve(current,currentG);
+    solve(current,currentP);
     $('qCancel').style.display='none';
     $('qClose').style.display='inline-block';
     $('qClose').focus();
@@ -946,7 +677,7 @@ function answer(a,btn,box,fb){
 function closeQuestion(){
   if($('qOverlay').hidden) return;
   $('qOverlay').hidden=true;
-  if(current && !solvedSet.has(current.id) && currentG) currentG.focus();
+  if(current && !solvedSet.has(current.id) && currentP) currentP.focus();
 }
 $('qClose').onclick=closeQuestion;
 $('qCancel').onclick=closeQuestion;
@@ -954,9 +685,9 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape' && !$('qOverlay').hidden){ e.preventDefault(); closeQuestion(); }
 });
 
-function solve(h,g){
+function solve(h,p){
   solvedSet.add(h.id);
-  g.classList.add('solved');
+  p.classList.add('solved');
   found++; $('found').textContent=found;
   const li=$('chk-'+h.id); li.classList.add('done');
   $('pbar').style.width=(found/HAZARDS.length*100)+'%';
@@ -972,10 +703,10 @@ $('hintBtn').onclick=()=>{
   if(!remaining.length) return;
   addScore(-50); stats.hints++;
   const h=remaining[Math.floor(Math.random()*remaining.length)];
-  const g=document.querySelector(`.hz[data-id="${h.id}"]`);
-  g.classList.remove('hinted'); void g.getBoundingClientRect();
-  g.classList.add('hinted');
-  toast('💡 Un risque clignote sur la carte (−50)',true);
+  const p=hotspots.querySelector(`.pin.hz[data-id="${h.id}"]`);
+  p.classList.remove('hinted'); void p.offsetWidth;
+  p.classList.add('hinted');
+  toast('💡 Un risque clignote sur la photo (−50)',true);
 };
 
 /* =====================================================
@@ -985,13 +716,10 @@ function pushback(){
   ended=true; clearInterval(timerInt);
   const bonus=Math.floor(timeLeft/2);
   addScore(bonus);
-  const ac=$('aircraft'), tug=$('tug');
-  ac.style.transition='transform 6s cubic-bezier(.4,0,.8,1)';
-  tug.style.transition='transform 6s cubic-bezier(.4,0,.8,1)';
-  ac.style.transform='translateX(520px)';
-  tug.style.transform='translateX(520px)';
-  toast('🛫 Poste sécurisé — l\'avion peut partir ! Bonus temps +'+bonus,true);
-  setTimeout(()=>endGame(true,bonus),4500);
+  $('mapwrap').classList.add('cleared');
+  const st=$('stamp'); st.classList.add('show');
+  toast('🛫 Poste sécurisé — CLEAR TO PUSH ! Bonus temps +'+bonus,true);
+  setTimeout(()=>endGame(true,bonus),2800);
 }
 function grade(){
   if(score>=1100) return {g:'🏆 Expert prévention', c:'Score exemplaire : partagez vos réflexes avec l\'équipe.'};
