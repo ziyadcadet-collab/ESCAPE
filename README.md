@@ -11,6 +11,8 @@ pour lever chaque obstacle. Tous les obstacles levés → l'avion part.
 - 100 % autonome : un seul fichier `index.html`, aucune API, aucune installation.
 - Fonctionne sur PC, tablette et mobile (navigateur récent).
 - Idéal en causerie sécurité, quart d'heure sécurité, journée SST.
+- **Meilleur score** conservé localement (localStorage) d'une partie à l'autre.
+- **Accessible** : navigation clavier (Tab + Entrée/Espace), fermeture d'une fiche risque par Échap, respect de `prefers-reduced-motion`.
 
 ## Mécanique de jeu
 | Action | Points |

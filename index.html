@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CLEAR TO PUSH — Escape Game Sécurité Piste · Alyzia QSE</title>
+<meta name="description" content="Serious game de sensibilisation terrain : détectez les 10 risques du poste avion K12 (opérationnels et TMS) et validez les bonnes actions correctives avant le départ du vol AZ 4521.">
+<meta name="theme-color" content="#0d1f38">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d1f38'/%3E%3Ctext x='50' y='68' font-size='58' text-anchor='middle'%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -181,6 +184,19 @@ button.btn.primary:hover{background:#ff7a3c}
   aside .card{flex:1;min-width:240px}
   #mapwrap{min-height:52vh}
 }
+
+/* ======== ACCESSIBILITÉ ======== */
+:focus-visible{outline:3px solid var(--line-yellow);outline-offset:2px}
+.hz:focus-visible{outline:none}
+.hz:focus-visible .hitring{opacity:.75}
+.answers button.correct,.answers button.wrong{font-weight:600}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important;
+  }
+}
 </style>
 </head>
 <body>
@@ -320,6 +336,7 @@ button.btn.primary:hover{background:#ff7a3c}
     <div class="answers" id="qAnswers"></div>
     <div class="feedback" id="qFeedback"></div>
     <div class="actions">
+      <button class="btn" id="qCancel">← Revenir au poste</button>
       <button class="btn primary" id="qClose" style="display:none">Obstacle levé ✓</button>
     </div>
   </div>
@@ -650,7 +667,9 @@ function openHazard(h,g){
     b.onclick=()=>answer(a,b,box,fb);
     box.appendChild(b);
   });
+  $('qCancel').style.display='inline-block';
   $('qOverlay').hidden=false;
+  $('qCancel').focus();
 }
 function answer(a,btn,box,fb){
   if(a.ok){
@@ -659,7 +678,9 @@ function answer(a,btn,box,fb){
     fb.className='feedback ok'; fb.innerHTML=current.fb;
     addScore(100); toast('Obstacle levé ✓ +100',true);
     solve(current,currentG);
+    $('qCancel').style.display='none';
     $('qClose').style.display='inline-block';
+    $('qClose').focus();
   } else {
     btn.classList.add('wrong'); btn.disabled=true;
     stats.wrong++;
@@ -668,7 +689,16 @@ function answer(a,btn,box,fb){
     addScore(-30);
   }
 }
-$('qClose').onclick=()=>{ $('qOverlay').hidden=true; };
+function closeQuestion(){
+  if($('qOverlay').hidden) return;
+  $('qOverlay').hidden=true;
+  if(current && !solvedSet.has(current.id) && currentG) currentG.focus();
+}
+$('qClose').onclick=closeQuestion;
+$('qCancel').onclick=closeQuestion;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && !$('qOverlay').hidden){ e.preventDefault(); closeQuestion(); }
+});
 
 function solve(h,g){
   solvedSet.add(h.id);
@@ -715,15 +745,23 @@ function grade(){
   if(score>=550) return {g:'🥈 Opérateur vigilant', c:'Bonnes bases, quelques réflexes à consolider.'};
   return {g:'🥉 En progression', c:'Refaites une partie : la répétition ancre les bons gestes.'};
 }
+function readBest(){ try{ return parseInt(localStorage.getItem('ctp_best'))||0; }catch(e){ return 0; } }
+function writeBest(v){ try{ localStorage.setItem('ctp_best',v); }catch(e){} }
+
 function endGame(win,bonus){
   ended=true; clearInterval(timerInt);
   const m=$('endModal'); const gr=grade();
   const tmsCount=HAZARDS.filter(h=>h.tms).length;
+  const prevBest=readBest();
+  const isRecord=score>prevBest;
+  if(isRecord) writeBest(score);
+  const best=Math.max(prevBest,score);
   m.innerHTML=`
    <span class="tag">${win?'Mission accomplie':'Temps écoulé'}</span>
    <h2>${win?'✈️ Vol AZ 4521 : parti en sécurité':'⏱️ L\'avion est resté au poste'}</h2>
    <div class="scoreline">${score} pts</div>
    <div class="grade">${gr.g} — ${gr.c}</div>
+   <div class="grade">${isRecord?'🎉 Nouveau record personnel !':'Meilleur score : '+best+' pts'}</div>
    <div class="debrief">
      <div class="d"><b>Levée des obstacles :</b> ${found}/${HAZARDS.length} risques traités${win?` · bonus temps +${bonus}`:''} · ${stats.wrong} action(s) corrective(s) erronée(s) · ${stats.hints} indice(s)</div>
      <div class="d"><b>À retenir — TMS :</b> ${tmsCount} des ${HAZARDS.length} risques du poste concernaient directement le corps des agents : port de charges, postures penchées, gestes de traction, positions statiques. Les TMS représentent la première cause de maladie professionnelle en France.</div>
