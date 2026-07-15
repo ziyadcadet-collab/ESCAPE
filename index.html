@@ -93,28 +93,39 @@ main{flex:1;display:flex;gap:14px;padding:14px 18px;align-items:flex-start}
 #hotspots{position:absolute;inset:0;z-index:2}
 
 .pin{
-  position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);
-  border:none;background:transparent;cursor:pointer;border-radius:50%;padding:0;
+  position:absolute;width:44px;height:44px;transform:translate(-50%,-50%);
+  border:none;background:transparent;cursor:pointer;padding:0;z-index:3;
 }
-.pin .ring{
-  position:absolute;inset:0;border-radius:50%;
-  border:3px dashed var(--line-yellow);opacity:0;transition:opacity .2s,transform .2s;
-  box-shadow:0 0 0 2px rgba(0,0,0,.35), 0 0 14px rgba(255,198,30,.5);
+.pin .dot{
+  position:absolute;top:50%;left:50%;width:24px;height:24px;transform:translate(-50%,-50%);
+  border-radius:50%;border:2.5px solid #fff;
+  background:radial-gradient(circle at 50% 35%,#ffd873,#f26522);
+  box-shadow:0 2px 9px rgba(0,0,0,.6);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1rem;font-weight:800;line-height:1;transition:transform .15s;
 }
-.pin:hover .ring,.pin:focus-visible .ring{opacity:.95}
+.pin .pulse{
+  position:absolute;top:50%;left:50%;width:24px;height:24px;transform:translate(-50%,-50%);
+  border-radius:50%;border:2px solid var(--line-yellow);pointer-events:none;
+  animation:ping 2s ease-out infinite;
+}
+@keyframes ping{0%{transform:translate(-50%,-50%) scale(1);opacity:.8}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+.pin:hover .dot,.pin:focus-visible .dot{transform:translate(-50%,-50%) scale(1.22)}
 .pin:focus-visible{outline:none}
-.pin .check{
-  position:absolute;inset:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(circle,rgba(46,204,113,.95),rgba(20,110,60,.9));
-  border:2px solid #0f6e3c;color:#fff;font-size:1.5rem;font-weight:700;
-  opacity:0;transform:scale(.6);transition:opacity .3s,transform .3s;box-shadow:0 4px 14px rgba(0,0,0,.4);
+.pin:focus-visible .dot{box-shadow:0 0 0 3px var(--line-yellow),0 2px 9px rgba(0,0,0,.6)}
+.pin .label{
+  position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(-5px);
+  white-space:nowrap;background:rgba(6,14,26,.97);color:#fff;font-size:.72rem;font-weight:600;
+  padding:4px 9px;border-radius:8px;border:1px solid var(--stroke);
+  opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:0 5px 14px rgba(0,0,0,.45);
 }
-.pin .check::after{content:"✓"}
+.pin:hover .label,.pin:focus-visible .label{opacity:1}
 .pin.solved{cursor:default}
-.pin.solved .ring{opacity:0!important}
-.pin.solved .check{opacity:1;transform:scale(1)}
-.pin.hinted .ring{opacity:.95;animation:pinpulse 1s ease-out 3}
-@keyframes pinpulse{0%{transform:scale(1);opacity:1}100%{transform:scale(1.9);opacity:0}}
+.pin.solved .pulse{display:none}
+.pin.solved .dot{background:radial-gradient(circle,#2ecc71,#158043);border-color:#eafff2}
+.pin.solved .dot::after{content:"✓"}
+.pin.hinted .pulse{animation:ping .8s ease-out 4;border-color:#fff;border-width:3px}
+.pin.hinted .dot{box-shadow:0 0 0 4px rgba(255,255,255,.65),0 2px 9px rgba(0,0,0,.6)}
 
 /* tampon de fin */
 #stamp{
@@ -183,6 +194,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
   background:var(--alyzia-orange);color:#fff;border-radius:6px;padding:3px 10px;margin-bottom:10px;font-weight:700;
 }
 .modal .tag.tms{background:var(--tms)}
+.modal .tag.ras{background:#2e8b57}
 .modal h2{font-size:1.55rem;text-transform:uppercase;margin-bottom:6px}
 .modal p.desc{color:var(--ink-dim);font-size:.93rem;margin-bottom:14px;line-height:1.5}
 .answers{display:flex;flex-direction:column;gap:9px}
@@ -277,7 +289,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
     <div class="card">
       <h3>🎛️ Poste de contrôle</h3>
       <button class="btn" id="hintBtn">💡 Indice (−50 pts)</button>
-      <p class="hintnote">Survolez / explorez la photo pour repérer les risques, puis cliquez.<br>Fausse alerte : −20 pts · Clic dans le vide : −10 pts.</p>
+      <p class="hintnote">Cliquez chaque pastille ● pour inspecter la zone,<br>identifier le risque et choisir la bonne action.</p>
       <div class="legend" style="margin:10px 0">
         <span><i style="background:var(--alyzia-orange)"></i>Risque opérationnel</span>
         <span><i style="background:var(--tms)"></i>Risque TMS / santé</span>
@@ -294,8 +306,8 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
     <h2>Vol AZ 4521 — départ dans 6 minutes</h2>
     <p class="desc">Le commandant demande le repoussage. Mais le poste K12 n'est <b>pas sécurisé</b> : des risques pour l'avion <b>et pour la santé des agents</b> sont présents sur le tarmac.</p>
     <div class="rules">
-      <div><span class="ic">🔎</span><span><b>Trouvez tous les risques</b> en explorant la photo du poste : survolez, un cercle apparaît sur les zones à inspecter, puis cliquez.</span></div>
-      <div><span class="ic">✅</span><span>Pour chaque risque, <b>choisissez la bonne action corrective</b> : c'est elle qui valide la levée de l'obstacle.</span></div>
+      <div><span class="ic">📍</span><span><b>Des pastilles marquent les zones à inspecter</b> sur la photo. Cliquez chacune — survolez pour voir le nom de la zone (GPU, camion avitailleur, escalier…).</span></div>
+      <div><span class="ic">✅</span><span>Pour chaque zone, <b>identifiez le risque et choisissez la bonne action corrective</b> — ou confirmez que l'élément est conforme (RAS).</span></div>
       <div><span class="ic">🎲</span><span><b>Les risques changent à chaque partie</b> (tirage aléatoire) : impossible d'apprendre par cœur, il faut vraiment observer.</span></div>
       <div><span class="ic">🦴</span><span>Certains risques concernent les <b>TMS (troubles musculo-squelettiques)</b> : postures, port de charges, gestes répétitifs.</span></div>
       <div><span class="ic">⏱️</span><span>L'avion ne partira que si <b>tous les obstacles sont levés</b> avant la fin du chrono.</span></div>
@@ -333,7 +345,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
    ===================================================== */
 const ALL_HAZARDS = [
  {
-  id:"cales", tms:false, x:35, y:57,
+  id:"cales", tms:false, x:37, y:58,
   title:"Cales toujours en place",
   check:"Cales retirées et rangées",
   desc:"Les cales du train avant sont encore positionnées. L'avion ne peut pas être repoussé.",
@@ -346,7 +358,7 @@ const ALL_HAZARDS = [
   fb:"✔ Retrait sur ordre, jamais d'initiative isolée. Et côté TMS : on se baisse en <b>pliant les genoux, dos droit</b>, on ne se penche pas en avant bras tendus."
  },
  {
-  id:"escabeau", tms:true, x:71, y:60,
+  id:"escabeau", tms:true, x:70, y:59,
   title:"Escabeau / passerelle arrière accosté",
   check:"Escabeau dégagé et freiné",
   desc:"L'escabeau passagers est toujours accosté à la porte arrière. Risque de collision au repoussage et de chute de hauteur.",
@@ -359,7 +371,7 @@ const ALL_HAZARDS = [
   fb:"✔ <b>Pousser plutôt que tirer</b> : l'effort est mieux réparti et le dos reste aligné. Un GSE se déplace à deux dès que la visibilité ou la pente l'exige, et se gare freiné hors zone."
  },
  {
-  id:"gpu", tms:true, x:19, y:73,
+  id:"gpu", tms:true, x:19, y:74,
   title:"Câble GPU encore branché",
   check:"GPU débranché, câble lové",
   desc:"Le groupe de parc (GPU) est encore raccordé à l'avion. Le câble traverse la zone de circulation.",
@@ -372,7 +384,7 @@ const ALL_HAZARDS = [
   fb:"✔ Débranchement coordonné avec le poste de pilotage. Le lovage se fait <b>en grandes boucles, sans rotation forcée du poignet</b> — les tendinites du poignet et du coude sont des TMS fréquents en piste."
  },
  {
-  id:"fod", tms:true, x:86, y:44,
+  id:"fod", tms:true, x:86, y:42,
   title:"FOD sur la trajectoire",
   check:"FOD ramassé (bac FOD)",
   desc:"Un débris (FOD) se trouve sur la voie de circulation, sur la trajectoire de sortie du poste. Danger majeur pour les moteurs et les pneus.",
@@ -385,7 +397,7 @@ const ALL_HAZARDS = [
   fb:"✔ Tout agent qui voit un FOD le ramasse : c'est l'affaire de tous. Pour un objet au sol, on <b>fléchit les jambes</b> plutôt que d'arrondir le dos — même pour un objet léger, la répétition du geste use les lombaires."
  },
  {
-  id:"bagagiste", tms:true, x:32, y:82,
+  id:"bagagiste", tms:true, x:30, y:82,
   title:"Port de charge dos rond",
   check:"Manutention sécurisée en soute",
   desc:"Un agent charge les chariots bagages : dos arrondi, bagage tenu loin du corps, seul sur l'opération.",
@@ -398,7 +410,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les lombalgies liées au port de charges sont la <b>1ʳᵉ cause d'accident du travail en escale</b>. Charge collée au corps, genoux fléchis, pas de torsion du tronc : on tourne avec les pieds, jamais avec le dos."
  },
  {
-  id:"chariot", tms:false, x:44, y:85,
+  id:"chariot", tms:false, x:43, y:82,
   title:"Chariot bagages non freiné",
   check:"Chariot freiné / attelé",
   desc:"Un chariot à bagages stationne dans la ZER, frein non serré. Par vent fort ou souffle réacteur, il peut dériver vers l'avion.",
@@ -411,7 +423,7 @@ const ALL_HAZARDS = [
   fb:"✔ Tout matériel non utilisé sort de la ZER, <b>freiné et attelé</b>. Un chariot qui dérive au souffle peut percuter un agent ou perforer un fuselage."
  },
  {
-  id:"picb", tms:true, x:52, y:63,
+  id:"picb", tms:true, x:47, y:62,
   title:"Agent sans protection auditive",
   check:"PICB portés près du moteur",
   desc:"Un agent travaille à proximité immédiate du réacteur sans protection auditive.",
@@ -424,7 +436,7 @@ const ALL_HAZARDS = [
   fb:"✔ La surdité professionnelle est <b>irréversible</b>. Le port des PICB est permanent en zone d'évolution, pas seulement moteur tournant : un démarrage APU ou un engin peut survenir à tout moment."
  },
  {
-  id:"tuyau", tms:false, x:63, y:73,
+  id:"tuyau", tms:false, x:64, y:71,
   title:"Flexible carburant en travers",
   check:"Cheminement dégagé / balisé",
   desc:"Le flexible du camion avitailleur traverse le cheminement piéton des agents. Risque de chute de plain-pied.",
@@ -437,20 +449,20 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de plain-pied</b> (trébuchement, glissade) représentent une part majeure des accidents en escale — souvent avec entorses et TMS des membres inférieurs. On ne touche jamais un flexible en pression : on balise et on contourne."
  },
  {
-  id:"cone", tms:true, x:56, y:55,
+  id:"cone", tms:true, x:77, y:64,
   title:"Cône oublié sous le fuselage",
   check:"Cônes récupérés (tour avion)",
-  desc:"Un cône de balisage est resté sous le ventre de l'avion après le traitement du vol.",
+  desc:"Un cône de balisage est resté sur le poste, près de l'appareil, après le traitement du vol.",
   q:"Comment le récupérer correctement ?",
   answers:[
    {t:"Le laisser : il tombera tout seul au roulage", ok:false},
-   {t:"L'attraper en se penchant sous le fuselage, bras tendu, dos arrondi", ok:false},
+   {t:"L'attraper en se penchant en avant, bras tendu, dos arrondi", ok:false},
    {t:"S'accroupir genoux fléchis pour le saisir, puis effectuer le tour avion final complet", ok:true}
   ],
   fb:"✔ Le <b>tour avion final</b> (walk-around) permet justement de repérer cônes, trappes ouvertes et obstacles oubliés. Sous un fuselage, on s'accroupit — se pencher dos rond en extension est l'un des gestes les plus lésionnels."
  },
  {
-  id:"barre", tms:false, x:28, y:55,
+  id:"barre", tms:false, x:27, y:56,
   title:"Barre de tractage non vérifiée",
   check:"Barre + goupille vérifiées",
   desc:"La barre de tractage est attelée au tracteur, mais la goupille de sécurité (shear pin) n'a pas été contrôlée.",
@@ -463,7 +475,7 @@ const ALL_HAZARDS = [
   fb:"✔ Une goupille cisaillée non détectée = perte de contrôle de l'avion au push. Le contrôle croisé avant mouvement est un <b>arrêt-réflexe</b> : 30 secondes qui évitent l'accident majeur."
  },
  {
-  id:"casque", tms:true, x:43, y:70,
+  id:"casque", tms:true, x:50, y:72,
   title:"Agent casque-micro : posture statique",
   check:"Communication + posture agent casque",
   desc:"L'agent casque est en position depuis 20 minutes, nuque fléchie vers sa tablette, câble tendu vers la prise avion.",
@@ -476,7 +488,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les TMS ne viennent pas que du port de charges : les <b>postures statiques prolongées</b> (nuque fléchie, bras levés) sont tout aussi lésionnelles. Varier la posture, régler les hauteurs, faire des micro-pauses actives."
  },
  {
-  id:"soute", tms:false, x:47, y:52,
+  id:"soute", tms:false, x:48, y:52,
   title:"Trappe de soute restée ouverte",
   check:"Trappes de soute fermées/verrouillées",
   desc:"Une trappe de soute est encore ouverte et non verrouillée. Au repoussage, elle peut se rabattre ou accrocher un engin.",
@@ -489,7 +501,7 @@ const ALL_HAZARDS = [
   fb:"✔ Une trappe non verrouillée est un risque avion (accroche, dommage) <b>et</b> corporel (chute d'objet, choc). La fermeture-verrouillage fait partie de la check-list de départ, confirmée au tour avion final."
  },
  {
-  id:"flaque", tms:true, x:44, y:62,
+  id:"flaque", tms:true, x:42, y:64,
   title:"Flaque d'hydrocarbure au sol",
   check:"Épandage balisé / traité",
   desc:"Une flaque d'huile ou de kérosène s'étale sur le cheminement des agents. Sol glissant = risque de chute.",
@@ -502,7 +514,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de plain-pied par glissade</b> génèrent entorses, lombalgies et fractures. Un épandage se balise et se traite avec un absorbant adapté — on ne s'improvise pas dépollueur, et on ne traverse jamais une flaque glissante."
  },
  {
-  id:"uld", tms:false, x:26, y:80,
+  id:"uld", tms:false, x:26, y:79,
   title:"Conteneur ULD non verrouillé",
   check:"ULD arrimé / verrous engagés",
   desc:"Un conteneur / caisson est posé sur son dolly, mais les verrous d'arrimage ne sont pas engagés.",
@@ -515,7 +527,7 @@ const ALL_HAZARDS = [
   fb:"✔ Un ULD non verrouillé peut basculer ou chuter du dolly : risque d'écrasement grave. Les <b>verrous d'arrimage</b> se contrôlent systématiquement — jamais retenir une charge lourde avec le corps."
  },
  {
-  id:"marchepied", tms:true, x:67, y:64,
+  id:"marchepied", tms:true, x:66, y:63,
   title:"Agent grimpé sur une caisse",
   check:"Accès en hauteur avec moyen adapté",
   desc:"Pour atteindre une porte, un agent est monté sur une caisse instable au lieu d'utiliser un marchepied.",
@@ -528,7 +540,7 @@ const ALL_HAZARDS = [
   fb:"✔ Les <b>chutes de hauteur</b>, même de faible hauteur, provoquent des lésions graves (chevilles, poignets, dos). On utilise toujours un moyen d'accès adapté et stable, jamais un support de fortune."
  },
  {
-  id:"telephone", tms:false, x:58, y:74,
+  id:"telephone", tms:false, x:60, y:72,
   title:"Agent au téléphone en zone d'évolution",
   check:"Attention maintenue pendant la manœuvre",
   desc:"Un agent consulte son téléphone en pleine zone d'évolution, pendant la phase de repoussage.",
@@ -544,11 +556,11 @@ const ALL_HAZARDS = [
 
 /* leurres : éléments conformes (cliquer = fausse alerte pédagogique) */
 const ALL_DECOYS = [
- {id:"d1", x:29, y:39, msg:"Passerelle télescopique correctement accostée et sécurisée. RAS ✔"},
- {id:"d2", x:44, y:7, msg:"Engin de piste garé hors ZER, frein serré. RAS ✔"},
- {id:"d3", x:61, y:67, msg:"Agent équipé : gilet HV, PICB et chaussures de sécurité. RAS ✔"},
- {id:"d4", x:27, y:45, msg:"Matériel de piste rangé et sécurisé hors zone. RAS ✔"},
- {id:"d5", x:60, y:38, msg:"Cônes de balisage correctement disposés le long de la voie. RAS ✔"}
+ {id:"d1", x:24, y:37, msg:"Passerelle télescopique correctement accostée et sécurisée."},
+ {id:"d2", x:44, y:7,  msg:"Engins de piste garés hors ZER, freins serrés."},
+ {id:"d3", x:60, y:68, msg:"Agent équipé : gilet haute-visibilité, PICB et chaussures de sécurité."},
+ {id:"d4", x:33, y:44, msg:"Matériel de piste rangé et sécurisé hors zone."},
+ {id:"d5", x:58, y:38, msg:"Cônes de balisage correctement disposés le long de la voie."}
 ];
 
 /* ------- tirage aléatoire de la partie ------- */
@@ -566,36 +578,48 @@ const $=id=>document.getElementById(id);
 const hotspots=$('hotspots');
 const solvedSet=new Set();
 
-function makePin(cls,x,y,label){
+/* noms des zones affichés au survol de chaque pastille */
+const ZONE={
+  cales:"Train avant & cales", escabeau:"Escalier passagers", gpu:"Groupe de parc (GPU)",
+  fod:"Voie de circulation", bagagiste:"Chargement bagages", chariot:"Chariots à bagages",
+  picb:"Zone réacteur", tuyau:"Camion avitailleur", cone:"Cône de balisage",
+  barre:"Tracteur de repoussage", casque:"Agent au sol", soute:"Soute / fuselage",
+  flaque:"Sol / cheminement", uld:"Conteneur / dolly", marchepied:"Accès porte avion",
+  telephone:"Agents au sol",
+  d1:"Passerelle télescopique", d2:"Parking engins", d3:"Agent au sol",
+  d4:"Matériel au sol", d5:"Cônes de balisage"
+};
+
+function makePin(cls,x,y,zone){
   const b=document.createElement('button');
   b.className='pin '+cls;
   b.style.left=x+'%'; b.style.top=y+'%';
   b.setAttribute('type','button');
-  b.setAttribute('aria-label',label);
-  b.innerHTML='<span class="ring"></span><span class="check"></span>';
+  b.setAttribute('aria-label','Inspecter la zone : '+zone);
+  b.innerHTML='<span class="pulse"></span><span class="dot"></span><span class="label"></span>';
+  b.querySelector('.label').textContent=zone;
   return b;
 }
 
 HAZARDS.forEach(h=>{
-  const p=makePin('hz',h.x,h.y,'Élément à inspecter');
+  const p=makePin('hz',h.x,h.y,ZONE[h.id]||'Zone à inspecter');
   p.dataset.id=h.id;
   p.addEventListener('click',()=>openHazard(h,p));
   hotspots.appendChild(p);
 });
 
 DECOYS.forEach(d=>{
-  const p=makePin('decoy',d.x,d.y,'Élément à inspecter');
+  const p=makePin('decoy',d.x,d.y,ZONE[d.id]||'Zone à inspecter');
   p.dataset.id=d.id;
-  p.addEventListener('click',()=>{ if(!started||ended) return; addScore(-20); toast(d.msg+' (fausse alerte −20)',false); });
+  p.addEventListener('click',()=>openDecoy(d,p));
   hotspots.appendChild(p);
 });
 
-/* clic ailleurs sur la photo = fausse alerte */
+/* clic ailleurs sur la photo : simple rappel, sans pénalité (les zones sont marquées) */
 $('mapwrap').addEventListener('click',e=>{
   if(!started||ended) return;
   if(e.target.closest('.pin')) return;
-  addScore(-10);
-  toast('Rien à signaler ici. Observez le poste méthodiquement (−10)',false);
+  toast('Inspectez les zones signalées par une pastille ●',false);
 });
 
 /* =====================================================
@@ -674,6 +698,25 @@ function answer(a,btn,box,fb){
     addScore(-30);
   }
 }
+/* zone conforme (leurre) : vérification, pas de piège */
+function openDecoy(d,p){
+  if(!started||ended||p.classList.contains('solved')) return;
+  current=null; currentP=null;
+  $('qTag').textContent='Vérification'; $('qTag').className='tag ras';
+  $('qTitle').textContent=ZONE[d.id]||'Vérification';
+  $('qDesc').innerHTML=d.msg;
+  $('qAnswers').innerHTML='';
+  const fb=$('qFeedback'); fb.className='feedback ok';
+  fb.innerHTML='✔ Élément <b>conforme</b> — rien à corriger ici. Bonne vérification : savoir reconnaître ce qui est en règle fait partie de l\'inspection.';
+  $('qCancel').style.display='none';
+  $('qClose').style.display='inline-block';
+  $('qOverlay').hidden=false;
+  p.classList.add('solved');
+  addScore(10);
+  toast('✔ '+(ZONE[d.id]||'Zone')+' : conforme (+10)',true);
+  $('qClose').focus();
+}
+
 function closeQuestion(){
   if($('qOverlay').hidden) return;
   $('qOverlay').hidden=true;

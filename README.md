@@ -17,8 +17,10 @@ réellement observer. L'ordre des réponses est également mélangé à chaque o
   aucune dépendance JS ; fonctionne hors-ligne une fois les fichiers récupérés.
 - Fonctionne sur PC, tablette et mobile (navigateur récent).
 - Idéal en causerie sécurité, quart d'heure sécurité, journée SST.
-- **Visuel réaliste** : fond photographique aérien du poste avion ; les zones de risque
-  apparaissent au survol (cercle) et se valident d'un clic, avec effet « CLEAR TO PUSH » à la fin.
+- **Tour d'inspection guidé** : fond photographique aérien du poste ; des **pastilles visibles**
+  marquent chaque zone à inspecter (le survol affiche son nom : GPU, camion avitailleur, escalier…).
+  On clique, on identifie le risque et on choisit la bonne action — ou on confirme la conformité.
+  Effet « CLEAR TO PUSH » à la fin.
 - **Meilleur score** conservé localement (localStorage) d'une partie à l'autre.
 - **Accessible** : navigation clavier (Tab + Entrée/Espace), fermeture d'une fiche risque par Échap,
   respect de `prefers-reduced-motion`.
@@ -26,10 +28,9 @@ réellement observer. L'ordre des réponses est également mélangé à chaque o
 ## Mécanique de jeu
 | Action | Points |
 |---|---|
-| Obstacle levé (bonne action) | +100 |
+| Bonne action corrective | +100 |
+| Zone conforme vérifiée (RAS) | +10 |
 | Mauvaise action corrective | −30 |
-| Fausse alerte (élément conforme) | −20 |
-| Clic dans le vide | −10 |
 | Indice | −50 |
 | Bonus | temps restant ÷ 2 |
 
