@@ -104,6 +104,8 @@ main{flex:1;display:flex;gap:14px;padding:14px 18px;align-items:flex-start}
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:1rem;font-weight:800;line-height:1;transition:transform .15s;
 }
+.pin .num{font-size:.82rem;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.55)}
+.pin.solved .num{display:none}
 .pin .pulse{
   position:absolute;top:50%;left:50%;width:24px;height:24px;transform:translate(-50%,-50%);
   border-radius:50%;border:2px solid var(--line-yellow);pointer-events:none;
@@ -615,26 +617,28 @@ const ZONE={
   d4:"Matériel au sol", d5:"Cônes de balisage"
 };
 
-function makePin(cls,x,y,zone){
+function makePin(cls,x,y,zone,num){
   const b=document.createElement('button');
   b.className='pin '+cls;
   b.style.left=x+'%'; b.style.top=y+'%';
   b.setAttribute('type','button');
-  b.setAttribute('aria-label','Inspecter la zone : '+zone);
-  b.innerHTML='<span class="pulse"></span><span class="dot"></span><span class="label"></span>';
+  b.setAttribute('aria-label','Zone '+num+' à inspecter : '+zone);
+  b.innerHTML='<span class="pulse"></span><span class="dot"><span class="num"></span></span><span class="label"></span>';
+  b.querySelector('.num').textContent=num;
   b.querySelector('.label').textContent=zone;
   return b;
 }
 
+let pinNo=0;
 HAZARDS.forEach(h=>{
-  const p=makePin('hz',h.x,h.y,ZONE[h.id]||'Zone à inspecter');
+  const p=makePin('hz',h.x,h.y,ZONE[h.id]||'Zone à inspecter',++pinNo);
   p.dataset.id=h.id;
   p.addEventListener('click',()=>openHazard(h,p));
   hotspots.appendChild(p);
 });
 
 DECOYS.forEach(d=>{
-  const p=makePin('decoy',d.x,d.y,ZONE[d.id]||'Zone à inspecter');
+  const p=makePin('decoy',d.x,d.y,ZONE[d.id]||'Zone à inspecter',++pinNo);
   p.dataset.id=d.id;
   p.addEventListener('click',()=>openDecoy(d,p));
   hotspots.appendChild(p);
