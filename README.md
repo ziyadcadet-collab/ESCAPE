@@ -17,10 +17,14 @@ réellement observer. L'ordre des réponses est également mélangé à chaque o
   aucune dépendance JS ; fonctionne hors-ligne une fois les fichiers récupérés.
 - Fonctionne sur PC, tablette et mobile (navigateur récent).
 - Idéal en causerie sécurité, quart d'heure sécurité, journée SST.
-- **Tour d'inspection guidé** : fond photographique aérien du poste ; des **pastilles visibles**
+- **Tour d'inspection guidé** : fond photographique aérien du poste ; des **pastilles**
   marquent chaque zone à inspecter (le survol affiche son nom : GPU, camion avitailleur, escalier…).
   On clique, on identifie le risque et on choisit la bonne action — ou on confirme la conformité.
   Effet « CLEAR TO PUSH » à la fin.
+- **Deux modes** (choisis au démarrage) :
+  - **Sensibilisation** — zones *visibles*, 6:00, pour le grand public (causerie, quart d'heure sécurité) ;
+  - **Détection** — zones *cachées, révélées au survol*, 4:00, avec compteur « zones inspectées »,
+    pour entraîner la **vigilance** d'un public déjà sensibilisé.
 - **Meilleur score** conservé localement (localStorage) d'une partie à l'autre.
 - **Accessible** : navigation clavier (Tab + Entrée/Espace), fermeture d'une fiche risque par Échap,
   respect de `prefers-reduced-motion`.

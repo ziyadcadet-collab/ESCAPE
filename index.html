@@ -127,6 +127,26 @@ main{flex:1;display:flex;gap:14px;padding:14px 18px;align-items:flex-start}
 .pin.hinted .pulse{animation:ping .8s ease-out 4;border-color:#fff;border-width:3px}
 .pin.hinted .dot{box-shadow:0 0 0 4px rgba(255,255,255,.65),0 2px 9px rgba(0,0,0,.6)}
 
+/* mode Détection : zones cachées, révélées au survol / focus */
+body.mode-detection .pin .dot{opacity:0;transition:opacity .15s,transform .15s}
+body.mode-detection .pin .pulse{opacity:0}
+body.mode-detection .pin:hover .dot,
+body.mode-detection .pin:focus-visible .dot{opacity:1}
+body.mode-detection .pin.solved .dot{opacity:1}
+body.mode-detection .pin.hinted .pulse{opacity:1}
+
+/* sélecteur de mode (intro) */
+.modepick{display:flex;gap:10px;margin:8px 0 2px}
+.modebtn{
+  flex:1;display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;
+  background:#173257;border:2px solid var(--stroke);border-radius:12px;padding:11px 13px;cursor:pointer;
+  color:var(--ink);font-family:'Barlow';font-size:.98rem;font-weight:700;transition:border-color .15s,background .15s;
+}
+.modebtn small{font-weight:500;font-size:.72rem;color:var(--ink-dim)}
+.modebtn:hover{background:#1d3d6b}
+.modebtn.active{border-color:var(--alyzia-orange);background:#20406f}
+@media(max-width:560px){.modepick{flex-direction:column}}
+
 /* tampon de fin */
 #stamp{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-11deg) scale(.4);
@@ -268,6 +288,7 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
     <div class="box"><div class="lab">Temps restant</div><div class="val" id="timer">06:00</div></div>
     <div class="box"><div class="lab">Score</div><div class="val" id="score">0</div></div>
     <div class="box"><div class="lab">Obstacles levés</div><div class="val"><span id="found">0</span>/<span id="total">10</span></div></div>
+    <div class="box" id="zonesBox" hidden><div class="lab">Zones inspectées</div><div class="val"><span id="zseen">0</span>/<span id="ztot">13</span></div></div>
   </div>
 </header>
 <div id="timebar"><div id="timefill"></div></div>
@@ -311,6 +332,10 @@ button.btn.primary:hover{background:linear-gradient(180deg,#ff8a52,#ff6a2c);box-
       <div><span class="ic">🎲</span><span><b>Les risques changent à chaque partie</b> (tirage aléatoire) : impossible d'apprendre par cœur, il faut vraiment observer.</span></div>
       <div><span class="ic">🦴</span><span>Certains risques concernent les <b>TMS (troubles musculo-squelettiques)</b> : postures, port de charges, gestes répétitifs.</span></div>
       <div><span class="ic">⏱️</span><span>L'avion ne partira que si <b>tous les obstacles sont levés</b> avant la fin du chrono.</span></div>
+    </div>
+    <div class="modepick">
+      <button class="modebtn active" type="button" data-mode="sensib">🟢 Sensibilisation<small>Zones visibles · 6:00 · grand public</small></button>
+      <button class="modebtn" type="button" data-mode="detection">🔍 Détection<small>Zones cachées, révélées au survol · 4:00 · vigilance</small></button>
     </div>
     <div class="actions">
       <button class="btn primary" id="startBtn">🛫 Démarrer la mission</button>
@@ -619,15 +644,25 @@ DECOYS.forEach(d=>{
 $('mapwrap').addEventListener('click',e=>{
   if(!started||ended) return;
   if(e.target.closest('.pin')) return;
-  toast('Inspectez les zones signalées par une pastille ●',false);
+  toast(mode==='detection'
+    ? 'Explorez la photo : survolez pour révéler les zones à inspecter'
+    : 'Inspectez les zones signalées par une pastille ●', false);
 });
 
 /* =====================================================
    LOGIQUE DE JEU
    ===================================================== */
-const TOTAL_TIME=360;
+const TIMES={sensib:360, detection:240};
+let mode='sensib';
+let TOTAL_TIME=TIMES[mode];
 let score=0, found=0, started=false, ended=false, timeLeft=TOTAL_TIME, timerInt=null;
 let stats={wrong:0, hints:0};
+const inspectedSet=new Set();
+function markInspected(id){
+  if(mode!=='detection' || inspectedSet.has(id)) return;
+  inspectedSet.add(id);
+  $('zseen').textContent=inspectedSet.size;
+}
 
 const listEl=$('checklist');
 HAZARDS.forEach(h=>{
@@ -661,6 +696,7 @@ function tick(){
 let current=null, currentP=null;
 function openHazard(h,p){
   if(!started||ended||solvedSet.has(h.id)) return;
+  markInspected(h.id);
   current=h; currentP=p;
   $('qTag').textContent = h.tms ? 'Risque TMS / Santé' : 'Risque opérationnel';
   $('qTag').className = 'tag'+(h.tms?' tms':'');
@@ -701,6 +737,7 @@ function answer(a,btn,box,fb){
 /* zone conforme (leurre) : vérification, pas de piège */
 function openDecoy(d,p){
   if(!started||ended||p.classList.contains('solved')) return;
+  markInspected(d.id);
   current=null; currentP=null;
   $('qTag').textContent='Vérification'; $('qTag').className='tag ras';
   $('qTitle').textContent=ZONE[d.id]||'Vérification';
@@ -802,10 +839,25 @@ function endGame(win,bonus){
 /* =====================================================
    DÉMARRAGE
    ===================================================== */
+document.querySelectorAll('.modebtn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.modebtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    mode=b.dataset.mode;
+    TOTAL_TIME=TIMES[mode]; timeLeft=TOTAL_TIME;
+    $('timer').textContent=fmt(timeLeft); $('timer').classList.remove('warn'); updateTimeBar();
+  };
+});
 updateTimeBar();
 $('startBtn').onclick=()=>{
   $('introOverlay').hidden=true;
   started=true;
+  document.body.classList.add('mode-'+mode);
+  if(mode==='detection'){
+    $('ztot').textContent=HAZARDS.length+DECOYS.length;
+    $('zonesBox').hidden=false;
+  }
+  $('timer').textContent=fmt(timeLeft);
   timerInt=setInterval(tick,1000);
 };
 $('restartBtn').onclick=()=>location.reload();
